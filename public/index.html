@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Lunaval</title>
+  <script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff; --summary-bg: #fafafa; --ink: #202223; --ink-muted: #6d7175;
+      --line: #e1e3e5; --line-strong: #c9cccf; --focus: #005bd3;
+      --error: #d72c0d; --success: #008060; --radius: 6px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    .trust-bar { display: flex; justify-content: center; align-items: center; padding: 24px 20px 16px; border-bottom: 1px solid var(--line); }
+    .trust-bar__image { width: 190px; height: auto; display: block; }
+    .checkout { display: grid; grid-template-columns: 1fr 1fr; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 80px); }
+    .checkout__form-side { padding: 40px 56px; background: var(--bg); }
+    .checkout__summary-side { padding: 40px 56px; background: var(--summary-bg); border-left: 1px solid var(--line); }
+    @media (max-width: 900px) {
+      .checkout { grid-template-columns: 1fr; }
+      .checkout__summary-side { order: -1; border-left: none; border-bottom: 1px solid var(--line); padding: 20px; }
+      .checkout__form-side { padding: 20px; }
+    }
+    .section { margin-bottom: 28px; }
+    .section__title { font-size: 18px; font-weight: 600; color: var(--ink); margin: 0 0 14px; }
+    .field { position: relative; margin-bottom: 10px; }
+    .field-row { display: grid; gap: 10px; margin-bottom: 10px; }
+    .field-row--2 { grid-template-columns: 1fr 1fr; }
+    .field-row--3 { grid-template-columns: 1fr 1fr 1fr; }
+    .field-row .field { margin-bottom: 0; }
+    input[type="text"], input[type="email"], select { width: 100%; height: 48px; padding: 18px 12px 4px; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius); font-family: inherit; font-size: 14px; color: var(--ink); transition: border-color 0.1s, box-shadow 0.1s; }
+    select { padding-top: 14px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236d7175' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    input:focus, select:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); }
+    .field__label { position: absolute; left: 12px; top: 14px; color: var(--ink-muted); font-size: 14px; pointer-events: none; transition: top 0.1s, font-size 0.1s; }
+    .field input:focus ~ .field__label, .field input:not(:placeholder-shown) ~ .field__label, .field select:focus ~ .field__label, .field.has-value .field__label { top: 6px; font-size: 11px; }
+    .field--select .field__label { top: 6px; font-size: 11px; }
+    .address-suggestions { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.08); z-index: 10; max-height: 280px; overflow-y: auto; display: none; }
+    .address-suggestions.active { display: block; }
+    .address-suggestion { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--line); }
+    .address-suggestion:last-child { border-bottom: none; }
+    .address-suggestion:hover { background: #f3f8ff; }
+    .address-suggestion__main { font-weight: 500; }
+    .address-suggestion__sub { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+    .field--address { position: relative; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; }
+    .checkbox-row input { width: 16px; height: 16px; accent-color: var(--focus); }
+    .contact-note { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 6px; }
+    .contact-note__text { font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
+    .contact-note__line { flex: 1; height: 2px; background: #d1d5db; border-radius: 999px; max-width: 110px; }
+    .shipping-methods { background: var(--summary-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; color: var(--ink-muted); font-size: 13px; text-align: center; }
+    @keyframes shipping-fade-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .shipping-option { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; user-select: none; animation: shipping-fade-in 0.35s ease forwards; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+    .shipping-option:nth-child(1) { animation-delay: 0s; }
+    .shipping-option:nth-child(2) { animation-delay: 0.08s; }
+    .shipping-option--active { border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); background: #f3f8ff; }
+    .shipping-option input { margin: 0; accent-color: var(--focus); }
+    .shipping-option__label { flex: 1; }
+    .shipping-option__name { font-size: 14px; font-weight: 500; }
+    .shipping-option__eta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+    .shipping-option__price { font-weight: 600; }
+    .whop-embed-wrapper { border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; background: #fff; padding: 20px; }
+    .whop-loading { text-align: center; color: var(--ink-muted); font-size: 14px; padding: 30px 20px; }
+    #custom-submit-btn { width: 100%; height: 52px; background: #111; color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.15s, transform 0.1s; }
+    #custom-submit-btn:hover { background: #333; }
+    #custom-submit-btn:active { transform: scale(0.99); }
+    #custom-submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    .summary__item { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .summary__thumb { position: relative; width: 56px; height: 56px; background: #ececec; border: 1px solid var(--line); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: var(--ink-muted); overflow: hidden; }
+    .summary__qty-badge { position: absolute; top: -6px; right: -6px; background: #4a4a4a; color: #fff; font-size: 11px; font-weight: 600; border-radius: 999px; height: 20px; min-width: 20px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; }
+    .summary__name { font-size: 14px; }
+    .summary__price { font-size: 14px; font-weight: 500; }
+    .totals__row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .totals__row--muted span:last-child { color: var(--ink-muted); }
+    .totals__row--grand { padding-top: 16px; margin-top: 10px; border-top: 1px solid var(--line); font-size: 20px; font-weight: 600; }
+    .totals__row--grand .currency { font-size: 12px; color: var(--ink-muted); font-weight: 400; margin-right: 4px; }
+    .status { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius); font-size: 13px; display: none; }
+    .status--error { background: #fef0ef; color: var(--error); display: block; }
+    .checkout-footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .footer-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 13px; color: var(--focus); cursor: pointer; }
+    .footer-link:hover { text-decoration: underline; }
+    .footer-divider { color: var(--ink-muted); font-size: 13px; }
+    .policy-modal { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; }
+    .policy-modal--active { display: flex; }
+    .policy-modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+    .policy-modal__panel { position: relative; background: var(--bg); border-radius: 10px; max-width: 600px; width: calc(100% - 40px); max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .policy-modal__header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .policy-modal__title { font-size: 18px; font-weight: 600; margin: 0; }
+    .policy-modal__close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ink-muted); padding: 4px 8px; border-radius: 4px; }
+    .policy-modal__body { padding: 20px 24px; overflow-y: auto; font-size: 14px; line-height: 1.6; }
+    .policy-modal__body h3 { font-size: 15px; margin: 20px 0 8px; }
+    .policy-modal__body h3:first-child { margin-top: 0; }
+    .policy-modal__body p { margin: 0 0 12px; }
+    .policy-modal__body a { color: var(--focus); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="trust-bar">
+  <img src="https://i.imgur.com/EzQV9kN.png" alt="Secure checkout" class="trust-bar__image" />
+</div>
+
+<div class="checkout" id="checkout">
+  <div class="checkout__form-side">
+
+    <div class="section">
+      <h2 class="section__title">Contact</h2>
+      <div class="field">
+        <input type="email" id="email" placeholder=" " autocomplete="email" />
+        <label for="email" class="field__label">Email or mobile phone number</label>
+      </div>
+      <div class="contact-note">
+        <span class="contact-note__line"></span>
+        <span class="contact-note__text">★★★★★ Rated 4.5/5 by over 5,000 satisfied customers.</span>
+        <span class="contact-note__line"></span>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="news-opt-in" />
+        <label for="news-opt-in">Email me with news and offers</label>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Delivery</h2>
+      <div class="field field--select">
+        <select id="country"><option value="US">United States</option></select>
+        <label class="field__label">Country/Region</label>
+      </div>
+      <div class="field-row field-row--2">
+        <div class="field"><input type="text" id="first-name" placeholder=" " autocomplete="given-name" /><label for="first-name" class="field__label">First name (optional)</label></div>
+        <div class="field"><input type="text" id="last-name" placeholder=" " autocomplete="family-name" /><label for="last-name" class="field__label">Last name</label></div>
+      </div>
+      <div class="field field--address">
+        <input type="text" id="address" placeholder=" " autocomplete="street-address" />
+        <label for="address" class="field__label">Address</label>
+        <div id="address-suggestions" class="address-suggestions"></div>
+      </div>
+      <div class="field"><input type="text" id="apartment" placeholder=" " autocomplete="address-line2" /><label for="apartment" class="field__label">Apartment, suite, etc. (optional)</label></div>
+      <div class="field-row field-row--3">
+        <div class="field"><input type="text" id="city" placeholder=" " autocomplete="address-level2" /><label for="city" class="field__label">City</label></div>
+        <div class="field field--select">
+          <select id="state">
+            <option value="">State</option>
+            <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+            <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+            <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+            <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+            <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+            <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+            <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+            <option>New Hampshire</option><option>New York</option><option>New Jersey</option>
+            <option>New Mexico</option><option>North Carolina</option><option>North Dakota</option>
+            <option>Ohio</option><option>Oklahoma</option><option>Oregon</option><option>Pennsylvania</option>
+            <option>Rhode Island</option><option>South Carolina</option><option>South Dakota</option>
+            <option>Tennessee</option><option>Texas</option><option>Utah</option><option>Vermont</option>
+            <option>Virginia</option><option>Washington</option><option>West Virginia</option>
+            <option>Wisconsin</option><option>Wyoming</option>
+          </select>
+          <label class="field__label">State</label>
+        </div>
+        <div class="field"><input type="text" id="zip" placeholder=" " autocomplete="postal-code" /><label for="zip" class="field__label">ZIP code</label></div>
+      </div>
+      <div class="checkbox-row"><input type="checkbox" id="save-info" /><label for="save-info">Save this information for next time</label></div>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title">Shipping method</h2>
+      <div id="shipping-methods" class="shipping-methods">Enter your shipping address to view available shipping methods.</div>
+    </div>
+
+    <div class="section">
+      <h2 class="section__title" style="margin-bottom:16px;">Payment</h2>
+      <div class="whop-embed-wrapper">
+        <div class="whop-loading" id="whop-loading">Loading secure checkout...</div>
+        <div class="whop-checkout-embed" id="whop-embedded-checkout"
+          data-whop-checkout-plan-id="plan_1ueONK4K2yWmL"
+          data-whop-checkout-theme="light"
+          data-whop-checkout-hide-submit-button="true"
+          style="min-height:500px;width:100%;"
+        ></div>
+        <button type="button" id="custom-submit-btn">Pay now</button>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <footer class="checkout-footer">
+      <button type="button" class="footer-link" data-policy="refund">Refund policy</button>
+      <span class="footer-divider">·</span>
+      <button type="button" class="footer-link" data-policy="privacy">Privacy policy</button>
+      <span class="footer-divider">·</span>
+      <button type="button" class="footer-link" data-policy="contact">Contact</button>
+    </footer>
+  </div>
+
+  <div class="checkout__summary-side">
+    <div class="summary__item">
+      <div class="summary__thumb">
+        <span id="product-thumb">L</span>
+        <span class="summary__qty-badge">1</span>
+      </div>
+      <div class="summary__name" id="product-name">LUNAVAL SUBSCRIPTION - LIFETIME</div>
+      <div class="summary__price" id="product-price">$49.99</div>
+    </div>
+    <div class="totals">
+      <div class="totals__row"><span>Subtotal</span><span id="subtotal">$49.99</span></div>
+      <div class="totals__row totals__row--muted"><span>Shipping</span><span id="shipping-cost">Enter shipping address</span></div>
+      <div class="totals__row totals__row--grand"><span>Total</span><span><span class="currency">USD</span><span id="total">$49.99</span></span></div>
+    </div>
+  </div>
+</div>
+
+<div id="policy-modal" class="policy-modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="policy-modal__backdrop" data-close-modal></div>
+  <div class="policy-modal__panel">
+    <div class="policy-modal__header">
+      <h2 id="policy-modal-title" class="policy-modal__title"></h2>
+      <button type="button" class="policy-modal__close" data-close-modal>✕</button>
+    </div>
+    <div id="policy-modal-body" class="policy-modal__body"></div>
+  </div>
+</div>
+
+<script>
+  const PRODUCT = { name: 'LUNAVAL SUBSCRIPTION - LIFETIME', price: 49.99, planId: 'plan_1ueONK4K2yWmL' };
+  const SHIPPING_OPTIONS = {
+    'usps-free':     { label: 'USPS Standard', eta: '2-3 business days', price: 0.00 },
+    'fedex-express': { label: 'FedEx Express',  eta: '1-2 business days', price: 5.99 }
+  };
+  const state = { selectedShipping: 'usps-free', addressComplete: false };
+
+  // Init Whop embed
+  if (window.whopCheckoutLoader && window.whopCheckoutLoader.scan) window.whopCheckoutLoader.scan();
+  setTimeout(() => { const l = document.getElementById('whop-loading'); if (l) l.style.display = 'none'; }, 2500);
+  setTimeout(initCustomButton, 1500);
+
+  function renderShipping() {
+    const container = document.getElementById('shipping-methods');
+    container.className = ''; container.innerHTML = '';
+    Object.entries(SHIPPING_OPTIONS).forEach(([id, opt]) => {
+      const label = document.createElement('label');
+      label.className = 'shipping-option' + (id === state.selectedShipping ? ' shipping-option--active' : '');
+      label.innerHTML = `
+        <input type="radio" name="shipping" value="${id}" ${id === state.selectedShipping ? 'checked' : ''}/>
+        <div class="shipping-option__label">
+          <div class="shipping-option__name">${opt.label}</div>
+          <div class="shipping-option__eta">Estimated arrival: ${opt.eta}</div>
+        </div>
+        <div class="shipping-option__price">${opt.price === 0 ? 'Free' : '$' + opt.price.toFixed(2)}</div>
+      `;
+      label.querySelector('input').addEventListener('change', () => {
+        state.selectedShipping = id;
+        document.querySelectorAll('.shipping-option').forEach(el => el.classList.remove('shipping-option--active'));
+        label.classList.add('shipping-option--active');
+        updateTotals();
+      });
+      container.appendChild(label);
+    });
+  }
+
+  function updateTotals() {
+    const subtotal = PRODUCT.price;
+    const shippingCost = state.addressComplete ? SHIPPING_OPTIONS[state.selectedShipping].price : null;
+    document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+    const shipEl = document.getElementById('shipping-cost');
+    if (shippingCost === null) {
+      shipEl.textContent = 'Enter shipping address';
+      shipEl.parentElement.classList.add('totals__row--muted');
+    } else {
+      shipEl.textContent = shippingCost === 0 ? 'Free' : '$' + shippingCost.toFixed(2);
+      shipEl.parentElement.classList.remove('totals__row--muted');
+    }
+    document.getElementById('total').textContent = '$' + (subtotal + (shippingCost || 0)).toFixed(2);
+  }
+
+  function checkAddressComplete() {
+    const complete = ['address', 'city', 'zip', 'last-name'].every(id => document.getElementById(id).value.trim()) && document.getElementById('state').value;
+    if (complete !== state.addressComplete) {
+      state.addressComplete = complete;
+      if (complete) renderShipping();
+      updateTotals();
+    }
+  }
+
+  ['address', 'city', 'zip', 'last-name'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', checkAddressComplete);
+    el.addEventListener('change', checkAddressComplete);
+    el.addEventListener('blur', checkAddressComplete);
+  });
+  document.getElementById('state').addEventListener('change', checkAddressComplete);
+
+  function startAutofillWatcher() {
+    const fields = ['address', 'city', 'zip', 'last-name'];
+    let prev = fields.map(id => document.getElementById(id).value);
+    let ticks = 0;
+    const timer = setInterval(() => {
+      const curr = fields.map(id => document.getElementById(id).value);
+      if (curr.some((v, i) => v !== prev[i])) { prev = curr; checkAddressComplete(); }
+      if (++ticks >= 40) clearInterval(timer);
+    }, 200);
+  }
+  setTimeout(startAutofillWatcher, 500);
+
+  let checkoutSubmitted = false, submitTimeout = null;
+
+  function resetBtn() {
+    const btn = document.getElementById('custom-submit-btn');
+    btn.disabled = false; btn.textContent = 'Pay now'; btn.style.background = '#111';
+    checkoutSubmitted = false;
+    if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
+  }
+
+  window.addEventListener('message', function(event) {
+    if (!event.origin.endsWith('.whop.com')) return;
+    if (!event.data || typeof event.data.type !== 'string' || !event.data.type.startsWith('whop_checkout')) return;
+    if (event.data.type === 'whop_checkout_ready' || event.data.type === 'whop_checkout_update') {
+      document.getElementById('whop-loading').style.display = 'none';
+      if (checkoutSubmitted) resetBtn();
+      return;
+    }
+    if (!checkoutSubmitted) return;
+    if (event.data.type === 'whop_checkout_complete') {
+      if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
+      checkoutSubmitted = false;
+      const btn = document.getElementById('custom-submit-btn');
+      btn.textContent = 'Payment Complete!'; btn.style.background = '#008060';
+      setTimeout(() => { window.location.href = '/thank-you.html'; }, 1500);
+    } else if (event.data.type.includes('error') || event.data.type.includes('fail')) {
+      resetBtn();
+    }
+  });
+
+  function initCustomButton() {
+    const btn = document.getElementById('custom-submit-btn');
+    btn.addEventListener('click', function() {
+      btn.disabled = true; btn.textContent = 'Processing...';
+      try {
+        if (typeof wco !== 'undefined') {
+          checkoutSubmitted = true;
+          submitTimeout = setTimeout(resetBtn, 30000);
+          wco.submit('whop-embedded-checkout');
+        } else { resetBtn(); }
+      } catch(e) { resetBtn(); }
+    });
+  }
+
+  const POLICIES = {
+    refund:  { title: 'Refund Policy',  body: `<p>We stand behind everything we sell.</p><h3>30-Day Return Window</h3><p>You have 30 days from purchase to request a refund.</p><h3>How to Request</h3><p>Email <a href="mailto:support@lunaval.com">support@lunaval.com</a> with your order number.</p><h3>Processing Time</h3><p>Refunds processed within 5–7 business days.</p>` },
+    privacy: { title: 'Privacy Policy', body: `<p>Your privacy matters to us.</p><h3>Information We Collect</h3><p>Name, email, and payment details.</p><h3>How We Use It</h3><p>To process your order. We do not sell your data.</p><h3>Your Rights</h3><p>Email <a href="mailto:support@lunaval.com">support@lunaval.com</a> to access or delete your data.</p>` },
+    contact: { title: 'Contact',        body: `<h3>Get in touch</h3><p>Email: <a href="mailto:support@lunaval.com">support@lunaval.com</a></p><p>Response time: within 24–48 hours. Monday–Friday: 9 AM – 5 PM EST</p>` }
+  };
+
+  const policyModal = document.getElementById('policy-modal');
+  document.querySelectorAll('[data-policy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = POLICIES[btn.dataset.policy]; if (!p) return;
+      document.getElementById('policy-modal-title').textContent = p.title;
+      document.getElementById('policy-modal-body').innerHTML = p.body;
+      policyModal.classList.add('policy-modal--active');
+    });
+  });
+  document.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', () => policyModal.classList.remove('policy-modal--active')));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') policyModal.classList.remove('policy-modal--active'); });
+
+  const MAPBOX_TOKEN = '';
+  const addressInput = document.getElementById('address');
+  const suggestionsBox = document.getElementById('address-suggestions');
+  let autocompleteTimer = null, currentSuggestions = [], latestQuery = '';
+
+  addressInput.addEventListener('input', e => {
+    const query = e.target.value.trim(); clearTimeout(autocompleteTimer);
+    if (query.length < 1) { suggestionsBox.classList.remove('active'); return; }
+    latestQuery = query; autocompleteTimer = setTimeout(() => fetchAddresses(query), 120);
+  });
+  addressInput.addEventListener('focus', () => { if (currentSuggestions.length && addressInput.value.trim()) suggestionsBox.classList.add('active'); });
+  addressInput.addEventListener('blur', () => setTimeout(() => suggestionsBox.classList.remove('active'), 150));
+
+  async function fetchAddresses(query) {
+    try {
+      const s = MAPBOX_TOKEN ? await fetchMapbox(query) : await fetchPhoton(query);
+      if (query !== latestQuery) return;
+      currentSuggestions = s; renderSuggestions();
+    } catch {}
+  }
+
+  async function fetchMapbox(query) {
+    const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=US&types=address&autocomplete=true&limit=6&access_token=${MAPBOX_TOKEN}`);
+    const data = await res.json();
+    return (data.features || []).map(f => {
+      const ctx = f.context || [];
+      const get = p => { const h = ctx.find(c => c.id.startsWith(p)); return h ? h.text : ''; };
+      return { street: f.address ? `${f.address} ${f.text}` : f.text, city: get('place.'), state: get('region.'), postcode: get('postcode.') };
+    });
+  }
+
+  async function fetchPhoton(query) {
+    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en&bbox=-125,24,-66,50`);
+    const data = await res.json();
+    return (data.features || []).filter(f => f.properties?.country === 'United States').map(f => {
+      const p = f.properties;
+      return { street: [p.housenumber, p.street].filter(Boolean).join(' ') || p.name || '', city: p.city || '', state: p.state || '', postcode: p.postcode || '' };
+    }).filter(s => s.street);
+  }
+
+  function renderSuggestions() {
+    if (!currentSuggestions.length) { suggestionsBox.classList.remove('active'); return; }
+    suggestionsBox.innerHTML = '';
+    currentSuggestions.forEach(s => {
+      const el = document.createElement('div'); el.className = 'address-suggestion';
+      el.innerHTML = `<div class="address-suggestion__main">${s.street || '—'}</div><div class="address-suggestion__sub">${[s.city, s.state, s.postcode].filter(Boolean).join(', ')}</div>`;
+      el.addEventListener('mousedown', ev => { ev.preventDefault(); selectSuggestion(s); });
+      suggestionsBox.appendChild(el);
+    });
+    suggestionsBox.classList.add('active');
+  }
+
+  function selectSuggestion(s) {
+    addressInput.value = s.street;
+    if (s.city) document.getElementById('city').value = s.city;
+    if (s.postcode) document.getElementById('zip').value = s.postcode;
+    if (s.state) {
+      const sel = document.getElementById('state');
+      for (const opt of sel.options) {
+        if (opt.value.toLowerCase() === s.state.toLowerCase() || opt.text.toLowerCase() === s.state.toLowerCase()) { sel.value = opt.value; break; }
+      }
+    }
+    suggestionsBox.classList.remove('active'); checkAddressComplete();
+  }
+
+  updateTotals();
+</script>
+</body>
+</html>
