@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Checkout — Lunaval</title>
-  <script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
   <style>
     :root {
       --bg: #ffffff; --summary-bg: #fafafa; --ink: #202223; --ink-muted: #6d7175;
@@ -60,12 +59,40 @@
     .shipping-option__name { font-size: 14px; font-weight: 500; }
     .shipping-option__eta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
     .shipping-option__price { font-weight: 600; }
-    .whop-embed-wrapper { border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; background: #fff; padding: 20px; }
-    .whop-loading { text-align: center; color: var(--ink-muted); font-size: 14px; padding: 30px 20px; }
-    #custom-submit-btn { width: 100%; height: 52px; background: #111; color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.15s, transform 0.1s; }
-    #custom-submit-btn:hover { background: #333; }
-    #custom-submit-btn:active { transform: scale(0.99); }
-    #custom-submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    [hidden] { display: none !important; }
+    .section__subtitle { margin: -8px 0 14px; font-size: 13px; color: var(--ink-muted); }
+    .pay-methods { border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; background: var(--bg); }
+    .pay-method + .pay-method { border-top: 1px solid var(--line-strong); }
+    .pay-method__header { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; padding: 16px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .pay-method--active .pay-method__header { background: #f3f8ff; }
+    .pay-method__header input { margin: 0; width: 16px; height: 16px; accent-color: var(--focus); }
+    .pay-method__name { font-size: 14px; font-weight: 500; }
+    .pay-method__logos { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .pay-method__logos img { display: block; width: 38px; height: 24px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+    .pay-method__body { display: none; padding: 16px; background: var(--summary-bg); border-top: 1px solid var(--line); }
+    .pay-method--active .pay-method__body { display: block; }
+    .pay-method__note { margin: 0 0 14px; font-size: 13px; color: var(--ink-muted); text-align: center; }
+    @media (max-width: 480px) {
+      .pay-method[data-method="card"] .pay-method__logos { flex-basis: 100%; margin-left: 28px; }
+      .pay-method__logos img { width: 34px; height: 22px; }
+    }
+    .pay-loading { text-align: center; color: var(--ink-muted); font-size: 13px; padding: 18px 0; }
+    .card-fields .field-row { gap: 0 10px; margin-bottom: 0; }
+    apple-pay-button { display: block; --apple-pay-button-width: 100%; --apple-pay-button-height: 48px; --apple-pay-button-border-radius: 10px; }
+    .pay-divider { display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; font-size: 12px; color: var(--ink-muted); }
+    .pay-divider::before, .pay-divider::after { content: ''; flex: 1; height: 1px; background: var(--line-strong); }
+    #pay-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; background: #111; color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.15s, transform 0.1s; }
+    #pay-btn:hover { background: #333; }
+    #pay-btn:active { transform: scale(0.99); }
+    #pay-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+    .secured-by { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 14px 16px; background: linear-gradient(135deg, #f3f8ff 0%, #e6efff 100%); border: 1px solid #c4d8ff; border-radius: 10px; }
+    .secured-by__icon { flex: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #003087; color: #fff; box-shadow: 0 2px 8px rgba(0,48,135,0.25); }
+    .secured-by__title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 15px; font-weight: 600; color: #001c64; }
+    .secured-by__sub { margin-top: 2px; font-size: 12px; line-height: 1.4; color: #3b4a66; }
+    .pp-wordmark { display: inline-flex; align-items: center; gap: 3px; font-size: 18px; font-weight: 800; font-style: italic; letter-spacing: -0.02em; }
+    .pp-wordmark svg { width: 16px; height: 16px; }
+    .pp-wordmark__pay { color: #003087; }
+    .pp-wordmark__pal { color: #0079c1; }
     .summary__item { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
     .summary__thumb { position: relative; width: 56px; height: 56px; background: #ececec; border: 1px solid var(--line); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: var(--ink-muted); overflow: hidden; }
     .summary__qty-badge { position: absolute; top: -6px; right: -6px; background: #4a4a4a; color: #fff; font-size: 11px; font-weight: 600; border-radius: 999px; height: 20px; min-width: 20px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; }
@@ -142,20 +169,20 @@
         <div class="field field--select">
           <select id="state">
             <option value="">State</option>
-            <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
-            <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
-            <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
-            <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
-            <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
-            <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
-            <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
-            <option>New Hampshire</option><option>New York</option><option>New Jersey</option>
-            <option>New Mexico</option><option>North Carolina</option><option>North Dakota</option>
-            <option>Ohio</option><option>Oklahoma</option><option>Oregon</option><option>Pennsylvania</option>
-            <option>Rhode Island</option><option>South Carolina</option><option>South Dakota</option>
-            <option>Tennessee</option><option>Texas</option><option>Utah</option><option>Vermont</option>
-            <option>Virginia</option><option>Washington</option><option>West Virginia</option>
-            <option>Wisconsin</option><option>Wyoming</option>
+            <option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option>
+            <option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option>
+            <option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii</option><option value="ID">Idaho</option>
+            <option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option><option value="KS">Kansas</option>
+            <option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine</option><option value="MD">Maryland</option>
+            <option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option><option value="MS">Mississippi</option>
+            <option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option><option value="NV">Nevada</option>
+            <option value="NH">New Hampshire</option><option value="NY">New York</option><option value="NJ">New Jersey</option>
+            <option value="NM">New Mexico</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option>
+            <option value="OH">Ohio</option><option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option>
+            <option value="RI">Rhode Island</option><option value="SC">South Carolina</option><option value="SD">South Dakota</option>
+            <option value="TN">Tennessee</option><option value="TX">Texas</option><option value="UT">Utah</option><option value="VT">Vermont</option>
+            <option value="VA">Virginia</option><option value="WA">Washington</option><option value="WV">West Virginia</option>
+            <option value="WI">Wisconsin</option><option value="WY">Wyoming</option>
           </select>
           <label class="field__label">State</label>
         </div>
@@ -170,18 +197,68 @@
     </div>
 
     <div class="section">
-      <h2 class="section__title" style="margin-bottom:16px;">Payment</h2>
-      <div class="whop-embed-wrapper">
-        <div class="whop-loading" id="whop-loading">Loading secure checkout...</div>
-        <div class="whop-checkout-embed" id="whop-embedded-checkout"
-          data-whop-checkout-plan-id="plan_1ueONK4K2yWmL"
-          data-whop-checkout-theme="light"
-          data-whop-checkout-hide-submit-button="true"
-          style="min-height:500px;width:100%;"
-        ></div>
-        <button type="button" id="custom-submit-btn">Pay now</button>
+      <h2 class="section__title">Payment</h2>
+      <p class="section__subtitle">All transactions are secure and encrypted.</p>
+      <div class="pay-methods" role="radiogroup" aria-label="Payment method">
+        <div class="pay-method pay-method--active" data-method="card">
+          <label class="pay-method__header">
+            <input type="radio" name="pay-method" value="card" checked />
+            <span class="pay-method__name">Debit / Credit card</span>
+            <span class="pay-method__logos">
+              <img src="/img/payments/visa.svg" alt="Visa" />
+              <img src="/img/payments/mastercard.svg" alt="Mastercard" />
+              <img src="/img/payments/amex.svg" alt="American Express" />
+              <img src="/img/payments/discover.svg" alt="Discover" />
+              <img src="/img/payments/apple-pay.svg" alt="Apple Pay" />
+            </span>
+          </label>
+          <div class="pay-method__body">
+            <div id="pay-loading" class="pay-loading">Loading secure payment…</div>
+            <div id="applepay-container" hidden></div>
+            <div id="applepay-divider" class="pay-divider" hidden>or pay with card</div>
+            <div id="card-fields" class="card-fields">
+              <div id="card-number"></div>
+              <div class="field-row field-row--2">
+                <div id="card-expiry"></div>
+                <div id="card-cvv"></div>
+              </div>
+              <div id="card-name"></div>
+            </div>
+            <div id="card-button-fallback"></div>
+          </div>
+        </div>
+        <div class="pay-method" data-method="paypal">
+          <label class="pay-method__header">
+            <input type="radio" name="pay-method" value="paypal" />
+            <span class="pay-method__name">PayPal</span>
+            <span class="pay-method__logos"><img src="/img/payments/paypal.svg" alt="PayPal" /></span>
+          </label>
+          <div class="pay-method__body">
+            <p class="pay-method__note">After clicking the PayPal button, you'll log in to PayPal to complete your purchase securely.</p>
+            <div id="paypal-button-container"></div>
+          </div>
+        </div>
       </div>
-      <div id="status" class="status"></div>
+      <button type="button" id="pay-btn" hidden>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span id="pay-btn-label">Pay now</span>
+      </button>
+      <div id="status" class="status" role="alert"></div>
+      <div class="secured-by">
+        <div class="secured-by__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <div class="secured-by__title">
+            Secured by
+            <span class="pp-wordmark" aria-label="PayPal">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg>
+              <span aria-hidden="true"><span class="pp-wordmark__pay">Pay</span><span class="pp-wordmark__pal">Pal</span></span>
+            </span>
+          </div>
+          <div class="secured-by__sub">Your payment is encrypted and processed by PayPal. We never see or store your full card details.</div>
+        </div>
+      </div>
     </div>
 
     <footer class="checkout-footer">
@@ -222,17 +299,13 @@
 </div>
 
 <script>
-  const PRODUCT = { name: 'LUNAVAL SUBSCRIPTION - LIFETIME', price: 49.99, planId: 'plan_1ueONK4K2yWmL' };
+  // Display only — the amount charged is set server-side in api/_lib/paypal.js. Keep both in sync.
+  const PRODUCT = { name: 'LUNAVAL SUBSCRIPTION - LIFETIME', price: 49.99 };
   const SHIPPING_OPTIONS = {
     'usps-free':     { label: 'USPS Standard', eta: '2-3 business days', price: 0.00 },
     'fedex-express': { label: 'FedEx Express',  eta: '1-2 business days', price: 5.99 }
   };
-  const state = { selectedShipping: 'usps-free', addressComplete: false };
-
-  // Init Whop embed
-  if (window.whopCheckoutLoader && window.whopCheckoutLoader.scan) window.whopCheckoutLoader.scan();
-  setTimeout(() => { const l = document.getElementById('whop-loading'); if (l) l.style.display = 'none'; }, 2500);
-  setTimeout(initCustomButton, 1500);
+  const state = { selectedShipping: 'usps-free', addressComplete: false, payMethod: 'card' };
 
   function renderShipping() {
     const container = document.getElementById('shipping-methods');
@@ -302,48 +375,260 @@
   }
   setTimeout(startAutofillWatcher, 500);
 
-  let checkoutSubmitted = false, submitTimeout = null;
+  // ---- PayPal payments ----
+  const PAYPAL_API = '/api/paypal';
+  const payBtn = document.getElementById('pay-btn');
+  const payBtnLabel = document.getElementById('pay-btn-label');
+  const statusEl = document.getElementById('status');
+  let cardFields = null, paypalButtonRendered = false, paying = false, orderError = null;
 
-  function resetBtn() {
-    const btn = document.getElementById('custom-submit-btn');
-    btn.disabled = false; btn.textContent = 'Pay now'; btn.style.background = '#111';
-    checkoutSubmitted = false;
-    if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
+  const val = id => document.getElementById(id).value.trim();
+
+  function showStatus(msg) { statusEl.textContent = msg; statusEl.className = 'status status--error'; }
+  function clearStatus() { statusEl.textContent = ''; statusEl.className = 'status'; }
+
+  function setPaying(on) {
+    paying = on;
+    payBtn.disabled = on;
+    payBtnLabel.textContent = on ? 'Processing...' : 'Pay now';
   }
 
-  window.addEventListener('message', function(event) {
-    if (!event.origin.endsWith('.whop.com')) return;
-    if (!event.data || typeof event.data.type !== 'string' || !event.data.type.startsWith('whop_checkout')) return;
-    if (event.data.type === 'whop_checkout_ready' || event.data.type === 'whop_checkout_update') {
-      document.getElementById('whop-loading').style.display = 'none';
-      if (checkoutSubmitted) resetBtn();
-      return;
-    }
-    if (!checkoutSubmitted) return;
-    if (event.data.type === 'whop_checkout_complete') {
-      if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
-      checkoutSubmitted = false;
-      const btn = document.getElementById('custom-submit-btn');
-      btn.textContent = 'Payment Complete!'; btn.style.background = '#008060';
-      setTimeout(() => { window.location.href = '/thank-you.html'; }, 1500);
-    } else if (event.data.type.includes('error') || event.data.type.includes('fail')) {
-      resetBtn();
-    }
-  });
+  function failField(msg, id) {
+    showStatus(msg);
+    const el = document.getElementById(id);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus({ preventScroll: true });
+    return false;
+  }
 
-  function initCustomButton() {
-    const btn = document.getElementById('custom-submit-btn');
-    btn.addEventListener('click', function() {
-      btn.disabled = true; btn.textContent = 'Processing...';
-      try {
-        if (typeof wco !== 'undefined') {
-          checkoutSubmitted = true;
-          submitTimeout = setTimeout(resetBtn, 30000);
-          wco.submit('whop-embedded-checkout');
-        } else { resetBtn(); }
-      } catch(e) { resetBtn(); }
+  function validateCheckout() {
+    clearStatus();
+    if (!val('email')) return failField('Enter your email or mobile phone number.', 'email');
+    checkAddressComplete();
+    if (!state.addressComplete) {
+      const missing = ['last-name', 'address', 'city', 'state', 'zip'].find(id => !val(id));
+      return failField('Enter your full shipping address.', missing || 'address');
+    }
+    return true;
+  }
+
+  function currentTotal() {
+    return PRODUCT.price + (state.addressComplete ? SHIPPING_OPTIONS[state.selectedShipping].price : 0);
+  }
+
+  async function postJSON(path, body) {
+    const res = await fetch(PAYPAL_API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || 'Payment could not be processed. Please try again.');
+      err.issue = data.issue;
+      throw err;
+    }
+    return data;
+  }
+
+  function createOrder(source) {
+    return () => (orderError = null, postJSON('/orders', {
+      source,
+      shipping: state.selectedShipping,
+      email: val('email'),
+      address: {
+        firstName: val('first-name'), lastName: val('last-name'),
+        line1: val('address'), line2: val('apartment'),
+        city: val('city'), state: val('state'), zip: val('zip')
+      }
+    })).then(data => data.id).catch(err => { orderError = err.message; showStatus(err.message); throw err; });
+  }
+
+  function onPaymentComplete(result) {
+    paying = true;
+    payBtn.hidden = false; payBtn.disabled = true; payBtn.style.background = '#008060';
+    payBtnLabel.textContent = 'Payment Complete!';
+    setTimeout(() => { window.location.href = '/thank-you.html?order=' + encodeURIComponent(result.captureID || result.orderID); }, 1200);
+  }
+
+  async function captureOrder(orderID) {
+    const result = await postJSON('/capture', { orderID });
+    onPaymentComplete(result);
+    return result;
+  }
+
+  function handlePayError(err) {
+    console.error(err);
+    setPaying(false);
+    // The SDK wraps createOrder failures in a generic error, so prefer our server's message.
+    showStatus(orderError || (err && err.message) || 'Payment could not be processed. Please try again.');
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => { s.remove(); reject(new Error('Failed to load ' + src)); };
+      document.head.appendChild(s);
     });
   }
+
+  function updatePayButton() {
+    if (paying) return;
+    payBtn.hidden = !(state.payMethod === 'card' && cardFields);
+  }
+
+  const CARD_FIELD_STYLE = {
+    input: {
+      'font-size': '14px',
+      'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      color: '#202223',
+      padding: '14px 12px',
+      border: '1px solid #c9cccf',
+      'border-radius': '6px',
+      'box-shadow': 'none'
+    },
+    ':focus': { 'border-color': '#005bd3', 'box-shadow': '0 0 0 1px #005bd3' },
+    '.invalid': { color: '#d72c0d', 'border-color': '#d72c0d' }
+  };
+
+  function setupCardPayments() {
+    cardFields = paypal.CardFields({
+      createOrder: createOrder('card-fields'),
+      onApprove: data => captureOrder(data.orderID).catch(handlePayError),
+      onError: handlePayError,
+      style: CARD_FIELD_STYLE
+    });
+
+    if (cardFields.isEligible()) {
+      cardFields.NumberField({ placeholder: 'Card number' }).render('#card-number');
+      cardFields.ExpiryField({ placeholder: 'Expiry (MM / YY)' }).render('#card-expiry');
+      cardFields.CVVField({ placeholder: 'Security code' }).render('#card-cvv');
+      cardFields.NameField({ placeholder: 'Name on card' }).render('#card-name');
+    } else {
+      // Account not approved for advanced card fields yet: fall back to PayPal's hosted card button.
+      cardFields = null;
+      document.getElementById('card-fields').hidden = true;
+      paypal.Buttons({
+        fundingSource: paypal.FUNDING.CARD,
+        style: { shape: 'rect', height: 48 },
+        onClick: (data, actions) => (validateCheckout() ? actions.resolve() : actions.reject()),
+        createOrder: createOrder('card-button'),
+        onApprove: data => captureOrder(data.orderID).catch(handlePayError),
+        onError: handlePayError
+      }).render('#card-button-fallback');
+    }
+    updatePayButton();
+  }
+
+  payBtn.addEventListener('click', async () => {
+    if (paying || !cardFields || !validateCheckout()) return;
+    const fieldState = await cardFields.getState().catch(() => null);
+    if (fieldState && !fieldState.isFormValid) { showStatus('Check your card details and try again.'); return; }
+    setPaying(true);
+    try {
+      await cardFields.submit({
+        billingAddress: {
+          addressLine1: val('address'), addressLine2: val('apartment'),
+          adminArea2: val('city'), adminArea1: val('state'),
+          postalCode: val('zip'), countryCode: 'US'
+        }
+      });
+    } catch (err) { handlePayError(err); }
+  });
+
+  function renderPayPalButton() {
+    if (paypalButtonRendered || !window.paypal) return;
+    paypalButtonRendered = true;
+    paypal.Buttons({
+      fundingSource: paypal.FUNDING.PAYPAL,
+      style: { color: 'gold', shape: 'rect', label: 'paypal', height: 48 },
+      onClick: (data, actions) => (validateCheckout() ? actions.resolve() : actions.reject()),
+      createOrder: createOrder('paypal'),
+      onApprove: async (data, actions) => {
+        try { await captureOrder(data.orderID); }
+        catch (err) {
+          if (err.issue === 'INSTRUMENT_DECLINED') return actions.restart();
+          handlePayError(err);
+        }
+      },
+      onError: handlePayError
+    }).render('#paypal-button-container');
+  }
+
+  async function setupApplePay() {
+    if (!paypal.Applepay || !window.ApplePaySession || !ApplePaySession.supportsVersion(4) || !ApplePaySession.canMakePayments()) return;
+    await loadScript('https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js');
+    const applepay = paypal.Applepay();
+    const config = await applepay.config();
+    if (!config.isEligible) return;
+
+    const container = document.getElementById('applepay-container');
+    container.innerHTML = '<apple-pay-button buttonstyle="black" type="buy" locale="en-US"></apple-pay-button>';
+    container.hidden = false;
+    document.getElementById('applepay-divider').hidden = false;
+
+    container.firstElementChild.addEventListener('click', () => {
+      if (paying || !validateCheckout()) return;
+      const request = {
+        countryCode: config.countryCode,
+        currencyCode: 'USD',
+        merchantCapabilities: config.merchantCapabilities,
+        supportedNetworks: config.supportedNetworks,
+        requiredBillingContactFields: ['name', 'postalAddress'],
+        total: { label: 'Lunaval', amount: currentTotal().toFixed(2), type: 'final' }
+      };
+      // Must be created synchronously inside the click handler.
+      const session = new ApplePaySession(4, request);
+
+      session.onvalidatemerchant = event => {
+        applepay.validateMerchant({ validationUrl: event.validationURL })
+          .then(payload => session.completeMerchantValidation(payload.merchantSession))
+          .catch(err => { session.abort(); handlePayError(new Error('Apple Pay is unavailable right now. Please pay with card.')); console.error(err); });
+      };
+      session.onpaymentmethodselected = () => session.completePaymentMethodSelection({ newTotal: request.total });
+      session.onpaymentauthorized = async event => {
+        try {
+          const orderID = await createOrder('applepay')();
+          await applepay.confirmOrder({ orderId: orderID, token: event.payment.token, billingContact: event.payment.billingContact });
+          const result = await postJSON('/capture', { orderID });
+          session.completePayment({ status: ApplePaySession.STATUS_SUCCESS });
+          onPaymentComplete(result);
+        } catch (err) {
+          session.completePayment({ status: ApplePaySession.STATUS_FAILURE });
+          handlePayError(err);
+        }
+      };
+      session.begin();
+    });
+  }
+
+  document.querySelectorAll('input[name="pay-method"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      state.payMethod = radio.value;
+      document.querySelectorAll('.pay-method').forEach(el => el.classList.toggle('pay-method--active', el.dataset.method === radio.value));
+      if (radio.value === 'paypal') renderPayPalButton();
+      clearStatus();
+      updatePayButton();
+    });
+  });
+
+  async function initPayPal() {
+    const loading = document.getElementById('pay-loading');
+    try {
+      const res = await fetch(PAYPAL_API + '/config');
+      const { clientId } = await res.json();
+      if (!clientId) throw new Error('PayPal client ID is not configured');
+      const sdk = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture`;
+      try { await loadScript(sdk + '&components=buttons,card-fields,applepay'); }
+      catch { await loadScript(sdk + '&components=buttons,card-fields'); }
+      setupCardPayments();
+      if (state.payMethod === 'paypal') renderPayPalButton();
+      loading.hidden = true;
+      setupApplePay().catch(err => console.warn('Apple Pay unavailable:', err));
+    } catch (err) {
+      console.error(err);
+      loading.textContent = 'Secure payment could not be loaded. Please refresh the page.';
+    }
+  }
+  initPayPal();
 
   const POLICIES = {
     refund:  { title: 'Refund Policy',  body: `<p>We stand behind everything we sell.</p><h3>30-Day Return Window</h3><p>You have 30 days from purchase to request a refund.</p><h3>How to Request</h3><p>Email <a href="mailto:support@lunaval.com">support@lunaval.com</a> with your order number.</p><h3>Processing Time</h3><p>Refunds processed within 5–7 business days.</p>` },
