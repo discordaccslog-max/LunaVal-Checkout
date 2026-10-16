@@ -63,28 +63,24 @@
     [hidden] { display: none !important; }
     .section__subtitle { margin: -8px 0 14px; font-size: 13px; color: var(--ink-muted); }
     .pay-methods { border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; background: var(--bg); }
-    .pay-method { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; padding: 16px; cursor: pointer; user-select: none; transition: background 0.15s, box-shadow 0.15s; }
-    .pay-method:hover { background: #f9fafb; }
-    .pay-method--active, .pay-method--active:hover { background: #f3f8ff; box-shadow: inset 0 0 0 1px var(--focus); border-radius: 10px; }
-    .pay-method input { margin: 0; width: 16px; height: 16px; accent-color: var(--focus); }
+    .pay-method__header { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; padding: 16px; background: #f3f8ff; border-bottom: 1px solid var(--line); }
+    .pay-method__header input { margin: 0; width: 16px; height: 16px; accent-color: var(--focus); }
     .pay-method__name { font-size: 14px; font-weight: 500; }
     .pay-method__logos { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-left: auto; }
     .pay-method__logos img { display: block; width: 38px; height: 24px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
-    @media (max-width: 560px) {
+    .pay-method__body { padding: 16px; background: var(--summary-bg); }
+    @media (max-width: 420px) {
       .pay-method__logos { flex-basis: 100%; margin-left: 28px; }
       .pay-method__logos img { width: 34px; height: 22px; }
     }
+    .pay-loading { text-align: center; color: var(--ink-muted); font-size: 13px; padding: 18px 0; }
+    .card-fields .field-row { gap: 0 10px; margin-bottom: 0; }
     .pay-overlay { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(17,17,17,0.55); backdrop-filter: blur(3px); animation: fade-in 0.2s ease; }
     .pay-overlay__panel { width: 100%; max-width: 400px; padding: 32px 28px 24px; background: var(--bg); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
     .pay-overlay__spinner { width: 44px; height: 44px; margin: 0 auto 18px; border: 4px solid #e6efff; border-top-color: #003087; border-radius: 50%; animation: pay-spin 0.9s linear infinite; }
     @keyframes pay-spin { to { transform: rotate(360deg); } }
     .pay-overlay__title { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
     .pay-overlay__text { margin: 0 0 20px; font-size: 14px; color: var(--ink-muted); }
-    .pay-overlay__actions { display: flex; flex-direction: column; gap: 10px; }
-    .pay-overlay__btn { height: 46px; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; }
-    .pay-overlay__btn--primary { background: #111; color: #fff; border: none; }
-    .pay-overlay__cancel { margin-top: 14px; background: none; border: none; font-family: inherit; font-size: 13px; color: var(--focus); cursor: pointer; }
-    .pay-overlay__cancel:hover { text-decoration: underline; }
     .pay-overlay__footer { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
     .pay-overlay__secured { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 600; color: #001c64; }
     .pay-overlay__secured .pp-wordmark { font-size: 14px; }
@@ -165,23 +161,35 @@
     <div class="section">
       <h2 class="section__title">Payment</h2>
       <p class="section__subtitle">All transactions are secure and encrypted.</p>
-      <div class="pay-methods" role="radiogroup" aria-label="Payment method">
-        <label class="pay-method" id="pay-method-paypal">
-          <input type="radio" name="pay-method" value="paypal" />
-          <span class="pay-method__name">Debit / Credit card / Apple Pay / PayPal</span>
-          <span class="pay-method__logos">
-            <img src="/img/payments/visa.svg" alt="Visa" />
-            <img src="/img/payments/mastercard.svg" alt="Mastercard" />
-            <img src="/img/payments/amex.svg" alt="American Express" />
-            <img src="/img/payments/discover.svg" alt="Discover" />
-            <img src="/img/payments/apple-pay.svg" alt="Apple Pay" />
-            <img src="/img/payments/paypal.svg" alt="PayPal" />
-          </span>
-        </label>
+      <div class="pay-methods">
+        <div class="pay-method">
+          <label class="pay-method__header">
+            <input type="radio" name="pay-method" value="card" checked />
+            <span class="pay-method__name">Debit / Credit card</span>
+            <span class="pay-method__logos">
+              <img src="/img/payments/visa.svg" alt="Visa" />
+              <img src="/img/payments/mastercard.svg" alt="Mastercard" />
+              <img src="/img/payments/amex.svg" alt="American Express" />
+              <img src="/img/payments/discover.svg" alt="Discover" />
+            </span>
+          </label>
+          <div class="pay-method__body">
+            <div id="pay-loading" class="pay-loading">Loading secure card form…</div>
+            <div id="card-fields" class="card-fields">
+              <div id="card-number"></div>
+              <div class="field-row field-row--2">
+                <div id="card-expiry"></div>
+                <div id="card-cvv"></div>
+              </div>
+              <div id="card-name"></div>
+            </div>
+            <div id="card-button-fallback"></div>
+          </div>
+        </div>
       </div>
-      <button type="button" id="pay-btn">
+      <button type="button" id="pay-btn" hidden>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-        <span>Pay now</span>
+        <span id="pay-btn-label">Pay now</span>
       </button>
       <div id="status" class="status" role="alert"></div>
       <div class="secured-by">
@@ -226,15 +234,11 @@
   </div>
 </div>
 
-<div id="pay-overlay" class="pay-overlay" role="dialog" aria-modal="true" aria-labelledby="pay-overlay-title" hidden>
+<div id="pay-overlay" class="pay-overlay" role="alertdialog" aria-modal="true" aria-labelledby="pay-overlay-title" aria-live="polite" hidden>
   <div class="pay-overlay__panel">
     <div class="pay-overlay__spinner" aria-hidden="true"></div>
-    <h2 id="pay-overlay-title" class="pay-overlay__title">Successfully opened payment page</h2>
-    <p class="pay-overlay__text">Please complete your order in the PayPal tab you were redirected to.</p>
-    <div class="pay-overlay__actions">
-      <a id="pay-overlay-reopen" class="pay-overlay__btn pay-overlay__btn--primary" target="_blank" rel="noopener">Didn't open? Open payment page</a>
-    </div>
-    <button type="button" id="pay-overlay-cancel" class="pay-overlay__cancel">Cancel and return to checkout</button>
+    <h2 id="pay-overlay-title" class="pay-overlay__title">Processing your payment…</h2>
+    <p class="pay-overlay__text">Please don't close or refresh this page.</p>
     <div class="pay-overlay__footer">
       <div class="pay-overlay__secured">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
@@ -261,36 +265,149 @@
 </div>
 
 <script>
-  // ---- Payment (PayPal hosted payment link) ----
-  const PAYMENT_URL = 'https://www.paypal.com/ncp/payment/H56HDAUUQVWT2';
-  const payOption = document.getElementById('pay-method-paypal');
-  const payRadio = payOption.querySelector('input');
+  // ---- PayPal card payments ----
+  const PAYPAL_API = '/api/paypal';
+  const payBtn = document.getElementById('pay-btn');
+  const payBtnLabel = document.getElementById('pay-btn-label');
   const payOverlay = document.getElementById('pay-overlay');
   const statusEl = document.getElementById('status');
-  document.getElementById('pay-overlay-reopen').href = PAYMENT_URL;
-
-  function openPayment() {
-    statusEl.textContent = ''; statusEl.className = 'status';
-    window.open(PAYMENT_URL, '_blank', 'noopener');
-    payOverlay.hidden = false;
-  }
-
-  payRadio.addEventListener('change', () => {
-    payOption.classList.add('pay-method--active');
-    openPayment();
-  });
-
-  document.getElementById('pay-btn').addEventListener('click', () => {
-    if (!payRadio.checked) {
-      statusEl.textContent = 'Please select a payment method.';
-      statusEl.className = 'status status--error';
-      return;
-    }
-    openPayment();
-  });
+  let cardFields = null, paying = false, orderError = null;
 
   document.getElementById('copyright-year').textContent = new Date().getFullYear();
-  document.getElementById('pay-overlay-cancel').addEventListener('click', () => { payOverlay.hidden = true; });
+
+  function showStatus(msg) { statusEl.textContent = msg; statusEl.className = 'status status--error'; }
+  function clearStatus() { statusEl.textContent = ''; statusEl.className = 'status'; }
+
+  // The overlay only goes up once the card is approved, so it never covers PayPal's 3-D Secure popup.
+  function setPaying(on, showOverlay = false) {
+    paying = on;
+    payBtn.disabled = on;
+    payBtnLabel.textContent = on ? 'Processing...' : 'Pay now';
+    payOverlay.hidden = !(on && showOverlay);
+  }
+
+  function validateCheckout() {
+    clearStatus();
+    const email = document.getElementById('email');
+    if (!email.value.trim()) {
+      showStatus('Enter your email so we can send your order details.');
+      email.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      email.focus({ preventScroll: true });
+      return false;
+    }
+    return true;
+  }
+
+  async function postJSON(path, body) {
+    const res = await fetch(PAYPAL_API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || 'Payment could not be processed. Please try again.');
+      err.issue = data.issue;
+      throw err;
+    }
+    return data;
+  }
+
+  function createOrder(source) {
+    return () => {
+      orderError = null;
+      return postJSON('/orders', { source, email: document.getElementById('email').value.trim() })
+        .then(data => data.id)
+        .catch(err => { orderError = err.message; throw err; });
+    };
+  }
+
+  async function captureOrder(orderID) {
+    setPaying(true, true);
+    const result = await postJSON('/capture', { orderID });
+    payBtnLabel.textContent = 'Payment Complete!';
+    payBtn.style.background = '#008060';
+    window.location.href = '/thank-you.html?order=' + encodeURIComponent(result.captureID || result.orderID);
+  }
+
+  function handlePayError(err) {
+    console.error(err);
+    setPaying(false);
+    // The SDK wraps createOrder failures in a generic error, so prefer our server's message.
+    showStatus(orderError || (err && err.message) || 'Payment could not be processed. Please try again.');
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('Failed to load ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  const CARD_FIELD_STYLE = {
+    input: {
+      'font-size': '14px',
+      'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      color: '#202223',
+      padding: '14px 12px',
+      border: '1px solid #c9cccf',
+      'border-radius': '6px',
+      'box-shadow': 'none'
+    },
+    ':focus': { 'border-color': '#005bd3', 'box-shadow': '0 0 0 1px #005bd3' },
+    '.invalid': { color: '#d72c0d', 'border-color': '#d72c0d' }
+  };
+
+  function setupCardPayments() {
+    cardFields = paypal.CardFields({
+      createOrder: createOrder('card-fields'),
+      onApprove: data => captureOrder(data.orderID).catch(handlePayError),
+      onError: handlePayError,
+      style: CARD_FIELD_STYLE
+    });
+
+    if (cardFields.isEligible()) {
+      cardFields.NumberField({ placeholder: 'Card number' }).render('#card-number');
+      cardFields.ExpiryField({ placeholder: 'Expiry (MM / YY)' }).render('#card-expiry');
+      cardFields.CVVField({ placeholder: 'Security code' }).render('#card-cvv');
+      cardFields.NameField({ placeholder: 'Name on card' }).render('#card-name');
+      payBtn.hidden = false;
+    } else {
+      // Account not approved for advanced card fields yet: fall back to PayPal's own inline card form.
+      cardFields = null;
+      document.getElementById('card-fields').hidden = true;
+      paypal.Buttons({
+        fundingSource: paypal.FUNDING.CARD,
+        style: { shape: 'rect', height: 48 },
+        onClick: (data, actions) => (validateCheckout() ? actions.resolve() : actions.reject()),
+        createOrder: createOrder('card-button'),
+        onApprove: data => captureOrder(data.orderID).catch(handlePayError),
+        onError: handlePayError
+      }).render('#card-button-fallback');
+    }
+  }
+
+  payBtn.addEventListener('click', async () => {
+    if (paying || !cardFields || !validateCheckout()) return;
+    const fieldState = await cardFields.getState().catch(() => null);
+    if (fieldState && !fieldState.isFormValid) { showStatus('Check your card details and try again.'); return; }
+    setPaying(true);
+    try { await cardFields.submit(); }
+    catch (err) { handlePayError(err); }
+  });
+
+  async function initPayPal() {
+    const loading = document.getElementById('pay-loading');
+    try {
+      const { clientId } = await (await fetch(PAYPAL_API + '/config')).json();
+      await loadScript(`https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&components=buttons,card-fields&currency=USD&intent=capture`);
+      setupCardPayments();
+      loading.hidden = true;
+    } catch (err) {
+      console.error(err);
+      loading.textContent = 'Secure payment could not be loaded. Please refresh the page.';
+    }
+  }
+  initPayPal();
 
   const POLICIES = {
     refund:  { title: 'Refund Policy',  body: `<p>We stand behind everything we sell.</p><h3>30-Day Return Window</h3><p>You have 30 days from purchase to request a refund.</p><h3>How to Request</h3><p>Email <a href="mailto:support@lunaval.com">support@lunaval.com</a> with your order number.</p><h3>Processing Time</h3><p>Refunds processed within 5–7 business days.</p>` },
